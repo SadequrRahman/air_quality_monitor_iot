@@ -1,0 +1,17 @@
+# built application files
+*.o
+*.a
+*.bin
+*.out
+/build
+/firmware
+
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+
+depend_Release_CSR101x_A05/
+*.html
+*.elf
+*.release.mak
