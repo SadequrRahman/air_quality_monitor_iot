@@ -27,9 +27,10 @@ PMS3003_Manager pms3003Manager;
 LOCAL os_timer_t readBufTimer;
 LOCAL uint8_t state;
 
+
 LOCAL void readBufCallback(void *arg)
 {
-	state ^=1;
+	state ^= 1;
 	GPIO_OUTPUT_SET(SET_PIN, state);
 
 }
@@ -44,8 +45,7 @@ PMS3003_Manager::PMS3003_Manager(){
 	os_printf("Creating pms3003 manager\r\n");
 	os_timer_disarm(&readBufTimer);
 	os_timer_setfn(&readBufTimer,(os_timer_func_t *)readBufCallback,(void*)0);
-	os_timer_arm(&readBufTimer,5000,1);
-
+	os_timer_arm(&readBufTimer,1000,0);
 }
 
 ICACHE_FLASH_ATTR PMS3003_Manager::~PMS3003_Manager()
@@ -63,7 +63,9 @@ PMS3003_Manager::parseAndUpdate(uint8_t *buf)
 	pms3003Manager.pms3003Data.setPm010Atm(word(buf[6],buf[7]));
 	pms3003Manager.pms3003Data.setPm025Atm(word(buf[8],buf[9]));
 	pms3003Manager.pms3003Data.setPm100Atm(word(buf[10],buf[11]));
+	os_printf_plus("Hook Okay\r\n");
 	pms3003Manager.notify(&pms3003Manager.pms3003Data);
+
 }
 
 
@@ -80,4 +82,14 @@ void ICACHE_FLASH_ATTR PMS3003_Manager::notify(PMS3003Data *dataObj)
 			os_printf("Sending Notification\r\n");
 			LisenterList[i]->update(dataObj);
 		}
+}
+
+void ICACHE_FLASH_ATTR PMS3003_Manager::turnOn()
+{
+	GPIO_OUTPUT_SET(SET_PIN, 1);
+}
+
+void ICACHE_FLASH_ATTR PMS3003_Manager::turnOff()
+{
+	GPIO_OUTPUT_SET(SET_PIN, 0);
 }

@@ -17,12 +17,26 @@ extern "C"
 #include "gpio.h"
 #include "os_type.h"
 #include "user_interface.h"
+#include "ets_sys.h"
+#include "driver/uart.h"
+#include "../mqtt/mqtt_c/include/mqtt.h"
+#include "wifi.h"
+#include "config.h"
+#include "mem.h"
 
+
+MQTT_Client mqttClient;
 // declare library methods
 extern int os_printf(const char *fmt, ...);
 extern void uart_setHook(void(*funcPtr)(uint8_t *buf));
+extern bool MQTT_Subscribe(MQTT_Client *client, char* topic, uint8_t qos);
+extern bool MQTT_Publish(MQTT_Client *client, const char* topic, const char* data, int data_length, int qos, int retain);
+extern void MQTT_InitLWT(MQTT_Client *mqttClient, uint8_t* will_topic, uint8_t* will_msg, uint8_t will_qos, uint8_t will_retain);
 void ets_timer_disarm(ETSTimer *ptimer);
 void ets_timer_setfn(ETSTimer *ptimer, ETSTimerFunc *pfunction, void *parg);
+#define os_malloc   pvPortMalloc
+#define os_free     vPortFree
+#define os_zalloc   pvPortZalloc
 }
 LOCAL os_timer_t timerHandler;
 
@@ -69,6 +83,62 @@ LOCAL double scale = 1.5;
 int16_t current[VERTEX_COUNT][3];
 int16_t previous[VERTEX_COUNT][3];
 
+
+
+extern "C" void ICACHE_FLASH_ATTR
+wifiConnectCb(uint8_t status)
+{
+	if(status == STATION_GOT_IP){
+		MQTT_Connect(&mqttClient);
+	} else {
+		MQTT_Disconnect(&mqttClient);
+	}
+}
+extern "C" void ICACHE_FLASH_ATTR
+mqttConnectedCb(uint32_t *args)
+{
+	MQTT_Client* client = (MQTT_Client*)args;
+	os_printf("MQTT: Connected\r\n");
+	char ptr[] = "/mqtt/topic";
+	MQTT_Subscribe(client,ptr, 0);
+
+
+	MQTT_Publish(client, "/mqtt/topic/0", "hello0", 6, 0, 0);
+
+}
+
+extern "C" void ICACHE_FLASH_ATTR
+mqttDisconnectedCb(uint32_t *args)
+{
+	MQTT_Client* client = (MQTT_Client*)args;
+}
+
+extern "C" void ICACHE_FLASH_ATTR
+mqttPublishedCb(uint32_t *args)
+{
+	MQTT_Client* client = (MQTT_Client*)args;
+}
+
+extern "C" void ICACHE_FLASH_ATTR
+mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len)
+{
+	char *topicBuf = (char*)os_zalloc(topic_len+1),
+		 *dataBuf = (char*)os_zalloc(data_len+1);
+
+	MQTT_Client* client = (MQTT_Client*)args;
+
+	os_memcpy(topicBuf, topic, topic_len);
+	topicBuf[topic_len] = 0;
+
+	os_memcpy(dataBuf, data, data_len);
+	dataBuf[data_len] = 0;
+	os_printf("Receive topic: %s, data: %s \r\n", topicBuf, dataBuf);
+	pms3003Manager.turnOn();
+	os_free(topicBuf);
+	os_free(dataBuf);
+}
+
+
 ICACHE_FLASH_ATTR static void updateScreen(void)
 {
 	REG_SET_BIT(0x3ff00014, BIT(0));
@@ -85,10 +155,28 @@ ICACHE_FLASH_ATTR static void updateScreen(void)
 ICACHE_FLASH_ATTR void sendMsgToHandler(void *arg)
 {
 	//system_os_post(USER_TASK_PRIO_0, UPDATE_SCREEN, 'a');
+
 	uart_setHook(static_cast<FuncPtr>(pms3003Manager.parseAndUpdate));
+	os_delay_us(1000);
+
+	MQTT_InitConnection(&mqttClient, sysCfg.mqtt_host, sysCfg.mqtt_port, sysCfg.security);
+	//MQTT_InitConnection(&mqttClient, "192.168.11.128", 1883, 0);
+
+	MQTT_InitClient(&mqttClient, sysCfg.device_id, sysCfg.mqtt_user, sysCfg.mqtt_pass, sysCfg.mqtt_keepalive, 1);
+	//MQTT_InitClient(&mqttClient, "client_id", "user", "pass", 120, 1);
+	uint8_t test[] = "/test";
+	uint8_t test1[] = "offline";
+	MQTT_InitLWT(&mqttClient,test ,test1 , 0, 0);
+	MQTT_OnConnected(&mqttClient, mqttConnectedCb);
+	MQTT_OnDisconnected(&mqttClient, mqttDisconnectedCb);
+	MQTT_OnPublished(&mqttClient, mqttPublishedCb);
+	MQTT_OnData(&mqttClient, mqttDataCb);
+	WIFI_Connect(sysCfg.sta_ssid, sysCfg.sta_pwd, wifiConnectCb);
+	os_printf("\r\nSystem started ...\r\n");
+
 }
 
-ICACHE_FLASH_ATTR void handler_task (os_event_t *e)
+extern "C" ICACHE_FLASH_ATTR void handler_task (os_event_t *e)
 {
 	switch (e->sig)
 	{
@@ -102,11 +190,13 @@ extern "C" void user_rf_pre_init(void)
 }
 
 
+
 extern "C" ICACHE_FLASH_ATTR void user_init(void)
 {
 	// Configure the UART
 	uart_init(BIT_RATE_9600,BIT_RATE_9600);
 	os_delay_us(10000);
+	CFG_Load();
 
 
 	os_printf("\r\nSystem init...\r\n");
@@ -125,11 +215,11 @@ extern "C" ICACHE_FLASH_ATTR void user_init(void)
 	// Set up a timer to send the message to handler
 	os_timer_disarm(&timerHandler);
 	os_timer_setfn(&timerHandler, (os_timer_func_t *)sendMsgToHandler, (void *)0);
-	os_timer_arm(&timerHandler, 6000, 0);
+	os_timer_arm(&timerHandler,10000, 0);
 
 	// Set up a timerHandler to send the message to handler
 	//handlerQueue = (os_event_t *)os_malloc(sizeof(os_event_t)*TEST_QUEUE_LEN);
 	//system_os_task(handler_task, USER_TASK_PRIO_0, handlerQueue, TEST_QUEUE_LEN);
 
-	os_printf("System init done \r\n");
+
 }

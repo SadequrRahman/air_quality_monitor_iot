@@ -135,11 +135,11 @@ endif
 TARGET		= app
 
 # which modules (subdirectories) of the project to include in compiling
-MODULES		= driver math user PMS3003 
+MODULES		= driver math user PMS3003 mqtt modules mqtt/mqtt_c
 EXTRA_INCDIR    = include include\driver include\math $(SDK_BASE)/../include
 
 # libraries used in this project, mainly provided by the SDK
-LIBS		= c gcc hal phy pp net80211 lwip wpa main
+LIBS		= c gcc hal phy pp net80211 lwip wpa main ssl
 
 # compiler flags using during compilation of source files
 CFLAGS		= -O2 -std=gnu90 -Wpointer-arith -Wundef -Werror -Wl,-EL -nostdlib -mlongcalls -mtext-section-literals -mno-serialize-volatile -D__ets__ -DICACHE_FLASH

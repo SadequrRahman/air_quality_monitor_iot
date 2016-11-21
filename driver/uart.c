@@ -34,8 +34,8 @@ LOCAL struct UartBuffer* pRxBuffer = NULL;
 /*uart demo with a system task, to output what uart receives*/
 /*this is a example to process uart data from task,please change the priority to fit your application task if exists*/
 /*it might conflict with your task, if so,please arrange the priority of different task,  or combine it to a different event in the same task. */
-#define uart_recvTaskPrio        0
-#define uart_recvTaskQueueLen    10
+#define uart_recvTaskPrio        2
+#define uart_recvTaskQueueLen    20
 os_event_t    uart_recvTaskQueue[uart_recvTaskQueueLen];
 
 #define DBG  
@@ -293,9 +293,6 @@ LOCAL bool newPkt = false;
 LOCAL uint8_t _idx = 0;
 LOCAL uint8_t dataBuf[PktDataLen]= {0};
 
-uint8_t* notify(void){
-	return &dataBuf[0];
-}
 
 LOCAL void ICACHE_FLASH_ATTR ///////
 uart_recvTask(os_event_t *events)
@@ -304,21 +301,21 @@ uart_recvTask(os_event_t *events)
     #if  UART_BUFF_EN  
         Uart_rx_buff_enq();
     #else
-        uint8_t fifo_len = (READ_PERI_REG(UART_STATUS(UART0))>>UART_RXFIFO_CNT_S)&UART_RXFIFO_CNT;
+        //uint8_t fifo_len = (READ_PERI_REG(UART_STATUS(UART0))>>UART_RXFIFO_CNT_S)&UART_RXFIFO_CNT;
         uint8_t d_tmp = 0;
         d_tmp = READ_PERI_REG(UART_FIFO(UART0)) & 0xFF;
-        if(pktStart==true){
-		if(_idx >= PktDataLen){
-		  newPkt = true;
-		  pktStart = false;
-		  _idx = 0;
-		  /* TODO call pm3003 manager and update */
-		  if(hookPm3003)
-			 (*hookPm3003)(dataBuf);
-		}
-		 else{
-		  dataBuf[_idx++] = d_tmp;
-		  }
+		if(pktStart==true){
+				if(_idx >= PktDataLen){
+				  newPkt = true;
+				  pktStart = false;
+				  _idx = 0;
+				  /* TODO call pm3003 manager and update */
+				  if(hookPm3003)
+					 (*hookPm3003)(dataBuf);
+				}
+				 else{
+				  dataBuf[_idx++] = d_tmp;
+				  }
 		}
 		if(d_tmp == startByte2 && startByte1Flag==true){
 			pktStart = true;
@@ -326,7 +323,8 @@ uart_recvTask(os_event_t *events)
 			}
 		if(d_tmp == startByte1 && (startByte1Flag == false) && (pktStart==false)){
 			startByte1Flag = true;
-			}
+		}
+
         /*
         uint8 idx=0;
         for(idx=0;idx<fifo_len;idx++) {

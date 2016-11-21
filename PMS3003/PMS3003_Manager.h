@@ -29,7 +29,8 @@ public:
 
 	PMS3003Data pms3003Data;
 	static void parseAndUpdate(uint8_t *buf);
-
+	void turnOn(void);
+	void turnOff(void);
 	void setFrequency(uint16_t _freq);
 	void registerLisenter(PmsSensorInterface *Obj);
 private:
