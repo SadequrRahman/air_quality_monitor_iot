@@ -20,18 +20,14 @@ extern "C"
 
 // declare library methods
 extern int os_printf(const char *fmt, ...);
+extern void uart_setHook(void(*funcPtr)(uint8_t *buf));
 void ets_timer_disarm(ETSTimer *ptimer);
 void ets_timer_setfn(ETSTimer *ptimer, ETSTimerFunc *pfunction, void *parg);
-
-#define PM3003_SET_HIGH			GPIO_OUTPUT_SET(4, 1)
-#define PM3003_SET_LOW			GPIO_OUTPUT_SET(4, 0)
-#define PM3003_SET_INIT 		PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO4_U, FUNC_GPIO4); PM3003_SET_HIGH
-
 }
 LOCAL os_timer_t timerHandler;
 
 Adafruit_ST7735 tft;
-
+extern PMS3003_Manager pms3003Manager;
 
 
 
@@ -88,7 +84,8 @@ ICACHE_FLASH_ATTR static void updateScreen(void)
 
 ICACHE_FLASH_ATTR void sendMsgToHandler(void *arg)
 {
-	system_os_post(USER_TASK_PRIO_0, UPDATE_SCREEN, 'a');
+	//system_os_post(USER_TASK_PRIO_0, UPDATE_SCREEN, 'a');
+	uart_setHook(static_cast<FuncPtr>(pms3003Manager.parseAndUpdate));
 }
 
 ICACHE_FLASH_ATTR void handler_task (os_event_t *e)
@@ -104,8 +101,6 @@ extern "C" void user_rf_pre_init(void)
 {
 }
 
-PMS3003_Manager pms3003Manager();
-
 
 extern "C" ICACHE_FLASH_ATTR void user_init(void)
 {
@@ -118,7 +113,6 @@ extern "C" ICACHE_FLASH_ATTR void user_init(void)
 	do_global_ctors();
 	os_printf("\r\nGlobal constructors invoked\r\n");
 	os_event_t *handlerQueue;
-	PM3003_SET_INIT;
 	// Initialize TFT
 	tft.begin();
 
@@ -129,9 +123,9 @@ extern "C" ICACHE_FLASH_ATTR void user_init(void)
 #endif
 
 	// Set up a timer to send the message to handler
-	//os_timer_disarm(&timerHandler);
-	//os_timer_setfn(&timerHandler, (os_timer_func_t *)sendMsgToHandler, (void *)0);
-	//os_timer_arm(&timerHandler, 1, 1);
+	os_timer_disarm(&timerHandler);
+	os_timer_setfn(&timerHandler, (os_timer_func_t *)sendMsgToHandler, (void *)0);
+	os_timer_arm(&timerHandler, 6000, 0);
 
 	// Set up a timerHandler to send the message to handler
 	//handlerQueue = (os_event_t *)os_malloc(sizeof(os_event_t)*TEST_QUEUE_LEN);

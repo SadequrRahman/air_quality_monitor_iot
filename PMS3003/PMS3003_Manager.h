@@ -9,19 +9,32 @@
 #define INCLUDE_PMS3003_MANAGER_H_
 
 #include "PMS3003Data.h"
+#include "../PMS3003/PmsSensorInterface.h"
+#include <vector>
+#include <list>
+
+using namespace std;
+typedef void (*FuncPtr)(uint8_t *val);
+
+
 
 extern "C" {
 #include "c_types.h"
 }
 
-class PMS3003_Manager : public PMS3003Data {
+class PMS3003_Manager {
 public:
-	PMS3003_Manager(void);
+	PMS3003_Manager();
+	~PMS3003_Manager();
+
+	PMS3003Data pms3003Data;
+	static void parseAndUpdate(uint8_t *buf);
+
 	void setFrequency(uint16_t _freq);
-	void parseAndUpdate(uint8_t *buf);
+	void registerLisenter(PmsSensorInterface *Obj);
 private:
-	ICACHE_FLASH_ATTR
-	uint16_t word(uint8_t h, uint8_t l){return (((uint16_t)h<<8)| (l & 0xFF));}
+	void notify(PMS3003Data *dataObj);
+	std::vector <PmsSensorInterface*>LisenterList;
 };
 
 #endif /* INCLUDE_PMS3003_MANAGER_H_ */

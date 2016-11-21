@@ -21,18 +21,12 @@
 #include "mem.h"
 #include "os_type.h"
 
-#ifdef __cplusplus /* for the use of a C program */
-extern "C"
-#include "../PMS3003_Manager.h"
-extern PMS3003_Manager pms3003Manager();
-#else  /* for the use of a C program */
-
-#endif
-
-
+// hook for pms3003Manager
+void(*hookPm3003)(uint8_t *buf) = 0;
+void uart_setHook(void(*funcPtr)(uint8_t *buf));
 
 // UartDev is defined and initialized in rom code.
-extern UartDevice    UartDev;
+extern UartDevice UartDev;
 
 LOCAL struct UartBuffer* pTxBuffer = NULL;
 LOCAL struct UartBuffer* pRxBuffer = NULL;
@@ -319,7 +313,8 @@ uart_recvTask(os_event_t *events)
 		  pktStart = false;
 		  _idx = 0;
 		  /* TODO call pm3003 manager and update */
-
+		  if(hookPm3003)
+			 (*hookPm3003)(dataBuf);
 		}
 		 else{
 		  dataBuf[_idx++] = d_tmp;
@@ -352,9 +347,18 @@ uart_recvTask(os_event_t *events)
     }
 }
 
+
+void ICACHE_FLASH_ATTR
+uart_setHook(void(*funcPtr)(uint8_t *buf))
+{
+	hookPm3003 = funcPtr;
+}
+
+
 void ICACHE_FLASH_ATTR
 uart_init(UartBautRate uart0_br, UartBautRate uart1_br)
 {
+
     /*this is a example to process uart data from task,please change the priority to fit your application task if exists*/
     system_os_task(uart_recvTask, uart_recvTaskPrio, uart_recvTaskQueue, uart_recvTaskQueueLen);  //demo with a task to process the uart data
     
