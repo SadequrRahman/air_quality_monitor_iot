@@ -175,7 +175,7 @@ ICACHE_FLASH_ATTR void Adafruit_GFX_AS::fillCircleHelper(int16_t x0, int16_t y0,
 }
 
 // Bresenham's algorithm - thx wikpedia
-void Adafruit_GFX_AS::drawLine(int16_t x0, int16_t y0,
+ICACHE_FLASH_ATTR void Adafruit_GFX_AS::drawLine(int16_t x0, int16_t y0,
 		int16_t x1, int16_t y1,
 		uint16_t color) {
 	int16_t steep = abs(y1 - y0) > abs(x1 - x0);
@@ -217,7 +217,7 @@ void Adafruit_GFX_AS::drawLine(int16_t x0, int16_t y0,
 }
 
 // Draw a rectangle
-void Adafruit_GFX_AS::drawRect(int16_t x, int16_t y,
+ICACHE_FLASH_ATTR void Adafruit_GFX_AS::drawRect(int16_t x, int16_t y,
 		int16_t w, int16_t h,
 		uint16_t color) {
 	drawFastHLine(x, y, w, color);
@@ -226,19 +226,19 @@ void Adafruit_GFX_AS::drawRect(int16_t x, int16_t y,
 	drawFastVLine(x+w-1, y, h, color);
 }
 
-void Adafruit_GFX_AS::drawFastVLine(int16_t x, int16_t y,
+ICACHE_FLASH_ATTR void Adafruit_GFX_AS::drawFastVLine(int16_t x, int16_t y,
 		int16_t h, uint16_t color) {
 	// Update in subclasses if desired!
 	drawLine(x, y, x, y+h-1, color);
 }
 
-void Adafruit_GFX_AS::drawFastHLine(int16_t x, int16_t y,
+ICACHE_FLASH_ATTR void Adafruit_GFX_AS::drawFastHLine(int16_t x, int16_t y,
 		int16_t w, uint16_t color) {
 	// Update in subclasses if desired!
 	drawLine(x, y, x+w-1, y, color);
 }
 
-void Adafruit_GFX_AS::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
+ICACHE_FLASH_ATTR void Adafruit_GFX_AS::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
 		uint16_t color) {
 	// Update in subclasses if desired!
 	for (int16_t i=x; i<x+w; i++) {
@@ -246,12 +246,12 @@ void Adafruit_GFX_AS::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
 	}
 }
 
-void Adafruit_GFX_AS::fillScreen(uint16_t color) {
+ICACHE_FLASH_ATTR void Adafruit_GFX_AS::fillScreen(uint16_t color) {
 	fillRect(0, 0, _width, _height, color);
 }
 
 // Draw a rounded rectangle
-void Adafruit_GFX_AS::drawRoundRect(int16_t x, int16_t y, int16_t w,
+ICACHE_FLASH_ATTR void Adafruit_GFX_AS::drawRoundRect(int16_t x, int16_t y, int16_t w,
 		int16_t h, int16_t r, uint16_t color) {
 	// smarter version
 	drawFastHLine(x+r  , y    , w-2*r, color); // Top
@@ -266,7 +266,7 @@ void Adafruit_GFX_AS::drawRoundRect(int16_t x, int16_t y, int16_t w,
 }
 
 // Fill a rounded rectangle
-void Adafruit_GFX_AS::fillRoundRect(int16_t x, int16_t y, int16_t w,
+ICACHE_FLASH_ATTR void Adafruit_GFX_AS::fillRoundRect(int16_t x, int16_t y, int16_t w,
 		int16_t h, int16_t r, uint16_t color) {
 	// smarter version
 	fillRect(x+r, y, w-2*r, h, color);
@@ -374,13 +374,13 @@ void Adafruit_GFX_AS::drawBitmap(int16_t x, int16_t y,
 	}
 }
 
-void Adafruit_GFX_AS::setTextColor(uint16_t c) {
+ICACHE_FLASH_ATTR void Adafruit_GFX_AS::setTextColor(uint16_t c) {
 	// For 'transparent' background, we'll set the bg
 	// to the same as fg instead of using a flag
 	textcolor = textbgcolor = c;
 }
 
-void Adafruit_GFX_AS::setTextColor(uint16_t c, uint16_t b) {
+ICACHE_FLASH_ATTR void Adafruit_GFX_AS::setTextColor(uint16_t c, uint16_t b) {
 	textcolor   = c;
 	textbgcolor = b;
 }
@@ -406,15 +406,15 @@ ICACHE_FLASH_ATTR void Adafruit_GFX_AS::setRotation(uint8_t x) {
 }
 
 // Return the size of the display (per current rotation)
-int16_t Adafruit_GFX_AS::width(void) {
+ICACHE_FLASH_ATTR int16_t Adafruit_GFX_AS::width(void) {
 	return _width;
 }
 
-int16_t Adafruit_GFX_AS::height(void) {
+ICACHE_FLASH_ATTR int16_t Adafruit_GFX_AS::height(void) {
 	return _height;
 }
 
-void Adafruit_GFX_AS::invertDisplay(bool i) {
+ICACHE_FLASH_ATTR void Adafruit_GFX_AS::invertDisplay(bool i) {
 	// Do nothing, must be subclassed if supported
 }
 

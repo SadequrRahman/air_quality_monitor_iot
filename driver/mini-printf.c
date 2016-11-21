@@ -45,7 +45,7 @@
 #include <stdarg.h>
 #include "mini-printf.h"
 
-static unsigned int
+static unsigned int ICACHE_FLASH_ATTR
 mini_strlen(const char *s)
 {
 	unsigned int len = 0;
@@ -53,7 +53,7 @@ mini_strlen(const char *s)
 	return len;
 }
 
-static unsigned int
+static unsigned int ICACHE_FLASH_ATTR
 mini_itoa(int value, unsigned int radix, unsigned int uppercase,
 	 char *buffer, unsigned int zero_pad)
 {
@@ -97,7 +97,7 @@ mini_itoa(int value, unsigned int radix, unsigned int uppercase,
 	return len;
 }
 
-int
+int ICACHE_FLASH_ATTR
 mini_vsnprintf(char *buffer, unsigned int buffer_len, const char *fmt, va_list va)
 {
 	char *pbuffer = buffer;
@@ -186,7 +186,7 @@ end:
 }
 
 
-int
+int ICACHE_FLASH_ATTR
 mini_snprintf(char* buffer, unsigned int buffer_len, const char *fmt, ...)
 {
 	int ret;

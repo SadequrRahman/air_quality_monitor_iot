@@ -14,7 +14,7 @@ DC GPIO2
 #define __min(a,b) ((a > b) ? (b):(a))
 uint32_t *spi_fifo;
 
-void hspi_init(void)
+void ICACHE_FLASH_ATTR hspi_init(void)
 {
 	spi_fifo = (uint32_t*)SPI_FLASH_C0(HSPI);
 
@@ -42,7 +42,7 @@ void hspi_init(void)
 	WRITE_PERI_REG(SPI_FLASH_USER(HSPI), regvalue);
 }
 
-void hspi_send_uint16_r(uint16_t data, int32_t repeats)
+void ICACHE_FLASH_ATTR hspi_send_uint16_r(uint16_t data, int32_t repeats)
 {
 	uint32_t i;
 	uint32_t word = data << 16 | data;
@@ -59,7 +59,7 @@ void hspi_send_uint16_r(uint16_t data, int32_t repeats)
 	}
 }
 
-void hspi_send_data(const uint8_t * data, uint8_t datasize)
+void ICACHE_FLASH_ATTR hspi_send_data(const uint8_t * data, uint8_t datasize)
 {
 	uint32_t *_data = (uint32_t*)data;
 	uint8_t i;

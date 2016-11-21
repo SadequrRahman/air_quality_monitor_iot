@@ -5,25 +5,35 @@
 // =============================================================================================
 #include "cpp_routines/routines.h"
 #include "user_config.h"
-#include <user_interface.h>
 #include <time.h>
 
-#include "../include/driver/Adafruit_ST7735.h"
+#include "../PMS3003/PMS3003_Manager.h"
+#include "Adafruit_ST7735.h"
 
 extern "C"
 {
 #include "espmissingincludes.h"
 #include "osapi.h"
+#include "gpio.h"
 #include "os_type.h"
-#include <user_interface.h>
-// declare lib methods
-extern int ets_uart_printf(const char *fmt, ...);
+#include "user_interface.h"
+
+// declare library methods
+extern int os_printf(const char *fmt, ...);
 void ets_timer_disarm(ETSTimer *ptimer);
 void ets_timer_setfn(ETSTimer *ptimer, ETSTimerFunc *pfunction, void *parg);
+
+#define PM3003_SET_HIGH			GPIO_OUTPUT_SET(4, 1)
+#define PM3003_SET_LOW			GPIO_OUTPUT_SET(4, 0)
+#define PM3003_SET_INIT 		PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO4_U, FUNC_GPIO4); PM3003_SET_HIGH
+
 }
 LOCAL os_timer_t timerHandler;
-//Adafruit_ST7735 tft;
+
 Adafruit_ST7735 tft;
+
+
+
 
 #ifdef UIDEMO
 extern void updateScreen(bool mode);
@@ -94,15 +104,21 @@ extern "C" void user_rf_pre_init(void)
 {
 }
 
+PMS3003_Manager pms3003Manager();
+
+
 extern "C" ICACHE_FLASH_ATTR void user_init(void)
 {
 	// Configure the UART
-	uart_init(BIT_RATE_115200,BIT_RATE_115200);
-	ets_uart_printf("\r\nSystem init...\r\n");
-	do_global_ctors();
-	ets_uart_printf("\r\nGlobal constructors invoked\r\n");
-	os_event_t *handlerQueue;
+	uart_init(BIT_RATE_9600,BIT_RATE_9600);
+	os_delay_us(10000);
 
+
+	os_printf("\r\nSystem init...\r\n");
+	do_global_ctors();
+	os_printf("\r\nGlobal constructors invoked\r\n");
+	os_event_t *handlerQueue;
+	PM3003_SET_INIT;
 	// Initialize TFT
 	tft.begin();
 
@@ -113,13 +129,13 @@ extern "C" ICACHE_FLASH_ATTR void user_init(void)
 #endif
 
 	// Set up a timer to send the message to handler
-	os_timer_disarm(&timerHandler);
-	os_timer_setfn(&timerHandler, (os_timer_func_t *)sendMsgToHandler, (void *)0);
-	os_timer_arm(&timerHandler, 1, 1);
+	//os_timer_disarm(&timerHandler);
+	//os_timer_setfn(&timerHandler, (os_timer_func_t *)sendMsgToHandler, (void *)0);
+	//os_timer_arm(&timerHandler, 1, 1);
 
 	// Set up a timerHandler to send the message to handler
-	handlerQueue = (os_event_t *)os_malloc(sizeof(os_event_t)*TEST_QUEUE_LEN);
-	system_os_task(handler_task, USER_TASK_PRIO_0, handlerQueue, TEST_QUEUE_LEN);
+	//handlerQueue = (os_event_t *)os_malloc(sizeof(os_event_t)*TEST_QUEUE_LEN);
+	//system_os_task(handler_task, USER_TASK_PRIO_0, handlerQueue, TEST_QUEUE_LEN);
 
-	ets_uart_printf("System init done \r\n");
+	os_printf("System init done \r\n");
 }

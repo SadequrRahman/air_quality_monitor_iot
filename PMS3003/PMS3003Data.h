@@ -5,10 +5,16 @@
  *      Author: APL-SadequrRahman
  */
 
-#ifndef INCLUDE_PMS3003_PMS3003_H_
-#define INCLUDE_PMS3003_PMS3003_H_
+#ifndef PMS3003DATA_H_
+#define PMS3003DATA_H_
 
-class PMS3003{
+extern "C"
+{
+#include "c_types.h"
+}
+
+
+class PMS3003Data{
 public:
 	uint16_t getPm010Atm(void);
 	void setPm010Atm(uint16_t pm010Atm);
@@ -22,8 +28,6 @@ public:
 	void setPm100Atm(uint16_t pm100Atm);
 	uint16_t getPm100Tsi(void);
 	void setPm100Tsi(uint16_t pm100Tsi);
-	bool isNewData(void);
-	void update(uint8_t *arg);
 
 private:
 	uint16_t pm010_TSI;
@@ -32,11 +36,6 @@ private:
 	uint16_t pm025_ATM;
 	uint16_t pm100_TSI;
 	uint16_t pm100_ATM;
-	bool isNewDataFlag;
-	inline uint16_t word(uint8_t h, uint8_t l){return (((uint16_t)h<<8)| (l & 0xFF));}
-
-
 };
 
-
-#endif /* INCLUDE_PMS3003_PMS3003_H_ */
+#endif /* INCLUDE_PMS3003DATA_H_ */

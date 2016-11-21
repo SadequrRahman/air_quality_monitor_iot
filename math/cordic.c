@@ -1,4 +1,5 @@
 #include "cordic.h"
+#include "c_types.h"
 
 static int cordic_ctab [CORDIC_NTAB] = { 0x3243F6A8, 0x1DAC6705, 0x0FADBAFC, 0x07F56EA6, 0x03FEAB76, 0x01FFD55B,
 0x00FFFAAA, 0x007FFF55, 0x003FFFEA, 0x001FFFFD, 0x000FFFFF, 0x0007FFFF, 0x0003FFFF,
@@ -12,7 +13,8 @@ static int cordic_ctab [CORDIC_NTAB] = { 0x3243F6A8, 0x1DAC6705, 0x0FADBAFC, 0x0
 #include <math.h>
 #endif
 
-void cordic(double degree, double *s, double *c)
+void ICACHE_FLASH_ATTR
+cordic(double degree, double *s, double *c)
 {
 
 #ifdef SIN_COS_FROM_MATH_H

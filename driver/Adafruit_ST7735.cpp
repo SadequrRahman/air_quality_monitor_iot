@@ -14,7 +14,7 @@ ICACHE_FLASH_ATTR Adafruit_ST7735::Adafruit_ST7735() : Adafruit_GFX_AS(ST7735_TF
 	tabcolor = 0;
 }
 
-void Adafruit_ST7735::transmitCmdData(uint8_t cmd, const uint8_t *data, uint8_t numDataByte)
+void ICACHE_FLASH_ATTR Adafruit_ST7735::transmitCmdData(uint8_t cmd, const uint8_t *data, uint8_t numDataByte)
 {
 	hspi_wait_ready();
 	TFT_DC_COMMAND;
@@ -28,7 +28,8 @@ ICACHE_FLASH_ATTR void Adafruit_ST7735::begin(void) {
 	//Set communication using HW SPI Port
 	hspi_init();
 	TFT_DC_INIT;
-	TFT_RST_INIT;
+	/* TFT RESET is connected directly VCC*/
+	//TFT_RST_INIT;
 
 	TFT_RST_ACTIVE;
 	os_delay_us(10000);
@@ -145,7 +146,7 @@ ICACHE_FLASH_ATTR void Adafruit_ST7735::begin(void) {
 	transmitCmd(0x2c);
 }
 
-void Adafruit_ST7735::drawPixel(int16_t x, int16_t y, uint16_t color) {
+void ICACHE_FLASH_ATTR Adafruit_ST7735::drawPixel(int16_t x, int16_t y, uint16_t color) {
 
 	if((x < 0) ||(x >= _width) || (y < 0) || (y >= _height)) return;
 	setAddrWindow(x,y,x+1,y+1);
@@ -153,7 +154,7 @@ void Adafruit_ST7735::drawPixel(int16_t x, int16_t y, uint16_t color) {
 }
 
 
-void Adafruit_ST7735::drawFastVLine(int16_t x, int16_t y, int16_t h,
+void ICACHE_FLASH_ATTR Adafruit_ST7735::drawFastVLine(int16_t x, int16_t y, int16_t h,
 		uint16_t color) {
 
 	// Rudimentary clipping
@@ -166,7 +167,7 @@ void Adafruit_ST7735::drawFastVLine(int16_t x, int16_t y, int16_t h,
 	transmitData(SWAPBYTES(color), h);
 }
 
-void Adafruit_ST7735::drawFastHLine(int16_t x, int16_t y, int16_t w,
+void ICACHE_FLASH_ATTR Adafruit_ST7735::drawFastHLine(int16_t x, int16_t y, int16_t w,
 		uint16_t color) {
 
 	// Rudimentary clipping
@@ -181,7 +182,7 @@ ICACHE_FLASH_ATTR void Adafruit_ST7735::fillScreen(uint16_t color) {
 }
 
 // fill a rectangle
-void Adafruit_ST7735::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
+void ICACHE_FLASH_ATTR Adafruit_ST7735::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
 		uint16_t color) {
 
 	// rudimentary clipping (drawChar w/big text requires this)
@@ -195,7 +196,7 @@ void Adafruit_ST7735::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
 
 
 // Pass 8-bit (each) R,G,B, get back 16-bit packed color
-uint16_t Adafruit_ST7735::color565(uint8_t r, uint8_t g, uint8_t b) {
+uint16_t ICACHE_FLASH_ATTR Adafruit_ST7735::color565(uint8_t r, uint8_t g, uint8_t b) {
 	return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
 }
 
@@ -208,7 +209,7 @@ uint16_t Adafruit_ST7735::color565(uint8_t r, uint8_t g, uint8_t b) {
 #define MADCTL_BGR 0x08
 #define MADCTL_MH  0x04
 
-void Adafruit_ST7735::setRotation(uint8_t m) {
+void ICACHE_FLASH_ATTR Adafruit_ST7735::setRotation(uint8_t m) {
 
 	uint8_t data;
 	rotation = m % 4; // can't be higher than 3
@@ -238,6 +239,6 @@ void Adafruit_ST7735::setRotation(uint8_t m) {
 }
 
 
-void Adafruit_ST7735::invertDisplay(bool i) {
+void ICACHE_FLASH_ATTR Adafruit_ST7735::invertDisplay(bool i) {
 	transmitCmd(i ? ST7735_INVON : ST7735_INVOFF);
 }

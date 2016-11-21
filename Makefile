@@ -135,7 +135,7 @@ endif
 TARGET		= app
 
 # which modules (subdirectories) of the project to include in compiling
-MODULES		= driver math user PMS3003
+MODULES		= driver math user PMS3003 
 EXTRA_INCDIR    = include include\driver include\math $(SDK_BASE)/../include
 
 # libraries used in this project, mainly provided by the SDK

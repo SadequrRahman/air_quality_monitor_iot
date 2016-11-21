@@ -11,22 +11,26 @@ extern "C"
 }
 
 
-void *operator new(size_t size)
+void ICACHE_FLASH_ATTR
+*operator new(size_t size)
 {
    return os_malloc(size);
 }
 
-void *operator new[](size_t size)
+void ICACHE_FLASH_ATTR
+*operator new[](size_t size)
 {
    return os_malloc(size);
 }
 
-void operator delete(void * ptr)
+void ICACHE_FLASH_ATTR
+operator delete(void * ptr)
 {
    os_free(ptr);
 }
 
-void operator delete[](void * ptr)
+void ICACHE_FLASH_ATTR
+operator delete[](void * ptr)
 {
    os_free(ptr);
 }
