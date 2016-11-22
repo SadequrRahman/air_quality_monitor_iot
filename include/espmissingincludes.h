@@ -2,7 +2,6 @@
 #define ESPMISSINGINCLUDES_H
 
 #include <ets_sys.h>
-
 //Missing function prototypes in include folders. Gcc will warn on these if we don't define 'em anywhere.
 //MOST OF THESE ARE GUESSED! but they seem to swork and shut up the compiler.
 typedef struct espconn espconn;
@@ -36,8 +35,8 @@ void *pvPortZalloc(size_t);
 void uart_div_modify(int no, unsigned int freq);
 void vPortFree(void *ptr);
 void *vPortMalloc(size_t xWantedSize);
-uint8 wifi_get_opmode(void);
-uint32 system_get_time();
+//uint8 wifi_get_opmode(void);
+//uint32 system_get_time();
 int rand(void);
 void ets_bzero(void *s, size_t n);
 void ets_delay_us(int ms);

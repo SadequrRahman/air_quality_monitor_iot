@@ -309,6 +309,7 @@ uart_recvTask(os_event_t *events)
 				  newPkt = true;
 				  pktStart = false;
 				  _idx = 0;
+				  GPIO_OUTPUT_SET(4, 0);
 				  /* TODO call pm3003 manager and update */
 				  if(hookPm3003)
 					 (*hookPm3003)(dataBuf);
