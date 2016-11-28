@@ -21,9 +21,36 @@
 #include "mem.h"
 #include "os_type.h"
 
-// hook for pms3003Manager
+
+
+#define PktLEN        	24
+#define PktDataLen    	(PktLEN-2)
+#define startByte1 		0x42
+#define startByte2 		0x4d
+#define TIME_OUT		1000
+LOCAL bool startByte1Flag = false;
+LOCAL bool pktStart = false;
+LOCAL bool newPkt = false;
+LOCAL uint8_t _idx = 0;
+LOCAL uint8_t dataBuf[PktDataLen]= {0};
+// hook for pms3003Manage
 void(*hookPm3003)(uint8_t *buf) = 0;
 void uart_setHook(void(*funcPtr)(uint8_t *buf));
+
+LOCAL os_timer_t packRecTimeOut;
+
+
+LOCAL timeOutCB(void *arg)
+{
+  startByte1Flag = false;
+  newPkt = false;
+  pktStart = false;
+  _idx = 0;
+  os_printf("Packet Received TimeOut\r\n");
+  os_timer_disarm(&packRecTimeOut);
+}
+
+
 
 // UartDev is defined and initialized in rom code.
 extern UartDevice UartDev;
@@ -283,17 +310,6 @@ uart_test_rx()
 #endif
 
 
-#define PktLEN        	24
-#define PktDataLen    	(PktLEN-2)
-#define startByte1 		0x42
-#define startByte2 		0x4d
-LOCAL bool startByte1Flag = false;
-LOCAL bool pktStart = false;
-LOCAL bool newPkt = false;
-LOCAL uint8_t _idx = 0;
-LOCAL uint8_t dataBuf[PktDataLen]= {0};
-
-
 LOCAL void ICACHE_FLASH_ATTR ///////
 uart_recvTask(os_event_t *events)
 {
@@ -309,7 +325,8 @@ uart_recvTask(os_event_t *events)
 				  newPkt = true;
 				  pktStart = false;
 				  _idx = 0;
-				  GPIO_OUTPUT_SET(4, 0);
+				  os_timer_disarm(&packRecTimeOut);
+				  //GPIO_OUTPUT_SET(4, 0);
 				  /* TODO call pm3003 manager and update */
 				  if(hookPm3003)
 					 (*hookPm3003)(dataBuf);
@@ -321,6 +338,7 @@ uart_recvTask(os_event_t *events)
 		if(d_tmp == startByte2 && startByte1Flag==true){
 			pktStart = true;
 			startByte1Flag = false;
+			os_timer_arm(&packRecTimeOut,TIME_OUT,0);
 			}
 		if(d_tmp == startByte1 && (startByte1Flag == false) && (pktStart==false)){
 			startByte1Flag = true;
@@ -357,6 +375,8 @@ uart_setHook(void(*funcPtr)(uint8_t *buf))
 void ICACHE_FLASH_ATTR
 uart_init(UartBautRate uart0_br, UartBautRate uart1_br)
 {
+	os_timer_disarm(&packRecTimeOut);
+	os_timer_setfn(&packRecTimeOut,(os_timer_func_t*)timeOutCB,(void*)0);
 
     /*this is a example to process uart data from task,please change the priority to fit your application task if exists*/
     system_os_task(uart_recvTask, uart_recvTaskPrio, uart_recvTaskQueue, uart_recvTaskQueueLen);  //demo with a task to process the uart data

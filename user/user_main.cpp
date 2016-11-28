@@ -1,6 +1,11 @@
 // =============================================================================================
 // C includes and declarations
 // =============================================================================================
+#include "../PMS3003/PMS3003_Manager.h"
+#include "../mqtt/MqttManager.h"
+#include "driver/Adafruit_ST7735.h"
+#include "routines.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -14,9 +19,9 @@ extern "C"
 #include "ets_sys.h"
 #include "driver/uart.h"
 #include "../mqtt/mqtt_c/include/mqtt.h"
+#include "../displayManager/DisplayManager.h"
 #include "wifi.h"
 #include "config.h"
-#include "mem.h"
 
 // declare library methods
 extern int os_printf(const char *fmt, ...);
@@ -27,17 +32,17 @@ void ets_timer_setfn(ETSTimer *ptimer, ETSTimerFunc *pfunction, void *parg);
 }
 #endif
 
-#include <time.h>
-#include "cpp_routines/routines.h"
-#include "../PMS3003/PMS3003_Manager.h"
-#include "../mqtt/MqttManager.h"
+
 
 
 LOCAL os_timer_t timerHandler;
-LOCAL MQTT_Client myClient;
 
-extern PMS3003_Manager pms3003Manager;
-MqttManager myMqttManager(&myClient);
+PMS3003_Manager pms3003Manager;
+MqttManager myMqttManager;
+Adafruit_ST7735 tft;
+DisplayManager displayManager(&tft);
+
+
 
 extern "C" void ICACHE_FLASH_ATTR
 wifiConnectCb(uint8_t status)
@@ -56,6 +61,7 @@ ICACHE_FLASH_ATTR void sendMsgToHandler(void *arg)
 
 	WIFI_Connect(sysCfg.sta_ssid, sysCfg.sta_pwd, wifiConnectCb);
 	pms3003Manager.registerLisenter(&myMqttManager);
+	pms3003Manager.registerLisenter(&displayManager);
 	os_printf("\r\nSystem started ...\r\n");
 
 }
@@ -65,6 +71,9 @@ extern "C" void user_rf_pre_init(void)
 {
 }
 
+extern "C" void user_rf_cal_sector_set(void)
+{
+}
 
 
 extern "C" ICACHE_FLASH_ATTR void user_init(void)
@@ -75,7 +84,15 @@ extern "C" ICACHE_FLASH_ATTR void user_init(void)
 	CFG_Load();
 	os_printf("\r\nSystem init...\r\n");
 	do_global_ctors();
-	os_printf("\r\nGlobal constructors invoked\r\n");
+	/*
+	// Initialize TFT
+	tft.begin();
+
+	tft.fillScreen(0);
+
+	setupUI();
+	*/
+
 	// Set up a timer to send the message to handler
 	os_timer_disarm(&timerHandler);
 	os_timer_setfn(&timerHandler, (os_timer_func_t *)sendMsgToHandler, (void *)0);

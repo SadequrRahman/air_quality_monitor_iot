@@ -21,17 +21,28 @@ extern "C"{
 #define SET_PIN	4
 
 
-PMS3003_Manager pms3003Manager;
+extern PMS3003_Manager pms3003Manager;
 
 
 LOCAL os_timer_t readBufTimer;
 LOCAL uint8_t state;
+LOCAL uint16_t _10msCounter = 0;
 
 
 LOCAL void readBufCallback(void *arg)
 {
-	os_printf("Turing on sensor\r\n");
-	GPIO_OUTPUT_SET(SET_PIN, 1);
+	_10msCounter++;
+	if(_10msCounter%2000 == 0)
+	{
+		os_printf("Turing on sensor\r\n");
+		GPIO_OUTPUT_SET(SET_PIN, 1);
+	}
+	if(_10msCounter%2200 == 0)
+	{
+		os_printf("Turing off sensor\r\n");
+		GPIO_OUTPUT_SET(SET_PIN, 0);
+	}
+
 
 }
 
@@ -44,7 +55,7 @@ PMS3003_Manager::PMS3003_Manager(){
 	os_printf("Creating pms3003 manager\r\n");
 	os_timer_disarm(&readBufTimer);
 	os_timer_setfn(&readBufTimer,(os_timer_func_t *)readBufCallback,(void*)0);
-	os_timer_arm(&readBufTimer,1000,1);
+	os_timer_arm(&readBufTimer,10,1);
 }
 
 ICACHE_FLASH_ATTR PMS3003_Manager::~PMS3003_Manager()
@@ -55,14 +66,13 @@ ICACHE_FLASH_ATTR PMS3003_Manager::~PMS3003_Manager()
 void ICACHE_FLASH_ATTR
 PMS3003_Manager::parseAndUpdate(uint8_t *buf)
 {
-
+	os_printf("Hook Okay\r\n");
 	pms3003Manager.pms3003Data.setPm010Tsi(word(buf[2],buf[3]));
 	pms3003Manager.pms3003Data.setPm025Tsi(word(buf[4],buf[5]));
 	pms3003Manager.pms3003Data.setPm100Tsi(word(buf[6],buf[7]));
 	pms3003Manager.pms3003Data.setPm010Atm(word(buf[8],buf[9]));
 	pms3003Manager.pms3003Data.setPm025Atm(word(buf[10],buf[11]));
 	pms3003Manager.pms3003Data.setPm100Atm(word(buf[12],buf[13]));
-	os_printf_plus("Hook Okay\r\n");
 	pms3003Manager.notify(&pms3003Manager.pms3003Data);
 
 }

@@ -21,7 +21,7 @@ extern "C"{
 
 class MqttManager : public PmsSensorInterface{
 public:
-	MqttManager(MQTT_Client *client);
+	MqttManager();
 	virtual ~MqttManager();
 	static void onConnectedcb(uint32_t *arg);
 	static void onDisconnectedcd(uint32_t *arg);
@@ -37,7 +37,7 @@ public:
 	void update(PMS3003Data *dataObj);
 
 private:
-	MQTT_Client *client;
+
 
 };
 
