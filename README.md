@@ -1,2 +1,2 @@
 # Description
-Details of the project will add later.
+Details of the project will be added later.
